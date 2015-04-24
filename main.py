@@ -88,7 +88,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="A command line interface to create and commit a new harvester")
 
     parser.add_argument('-b', '--baseurl', dest='baseurl', type=str, required=True, help='The base url for the OAI provider, everything before the ?')
-    parser.add_argument('-s', '--shortname', dest='shortname', type=str, required=True, help='flag to signal to open a pull request with the given harvester')
+    parser.add_argument('-s', '--shortname', dest='shortname', type=str, required=True, help='The shortname of the  provider')
     parser.add_argument('-f', '--favicon', dest='favicon', help='flag to signal saving favicon', action='store_true')
 
     return parser.parse_args()
