@@ -1,3 +1,22 @@
+"""
+A command line utility for creating OAI harvesters for scrapi.
+
+Creates new files in a scrapi repo that is hosted one directory up from this one.
+
+  -h, --help            show this help message and exit
+  -b BASEURL, --baseurl BASEURL
+                        The base url for the OAI provider, everything before
+                        the ?
+  -s SHORTNAME, --shortname SHORTNAME
+                        The shortname of the provider
+  -f, --favicon         flag to signal saving favicon
+  -d DAYS_BACK, --days_back DAYS_BACK
+                        Number of days back to make the properties request
+
+example usage: python main.py -b http://udspace.udel.edu/dspace-oai/request -s udel -f -d 30
+
+"""
+
 import shutil
 import argparse
 import requests
@@ -11,7 +30,7 @@ NAMESPACES = {'dc': 'http://purl.org/dc/elements/1.1/',
 BASE_SCHEMA = ['title', 'contributor', 'creator', 'subject', 'description']
 
 
-def get_oai_properties(base_url):
+def get_oai_properties(base_url, days_back):
     """ Makes 2 requests to the provided base URL:
         1 for the sets available
         1 for the list of properties
@@ -26,8 +45,9 @@ def get_oai_properties(base_url):
     """
     try:
         # request for records 30 days back just in case
-        start_date = str(date.today() - timedelta(30))
+        start_date = str(date.today() - timedelta(days_back))
         prop_url = base_url + '?verb=ListRecords&metadataPrefix=oai_dc&from={}T00:00:00Z'.format(start_date)
+        print('requesting {}'.format(prop_url))
         prop_data_request = requests.get(prop_url)
         all_prop_content = etree.XML(prop_data_request.content)
         try:
@@ -90,6 +110,7 @@ def parse_args():
     parser.add_argument('-b', '--baseurl', dest='baseurl', type=str, required=True, help='The base url for the OAI provider, everything before the ?')
     parser.add_argument('-s', '--shortname', dest='shortname', type=str, required=True, help='The shortname of the  provider')
     parser.add_argument('-f', '--favicon', dest='favicon', help='flag to signal saving favicon', action='store_true')
+    parser.add_argument('-d', '--days_back', dest='days_back', type=int, required=False, help='Number of days back to make the properties request')
 
     return parser.parse_args()
 
@@ -97,7 +118,12 @@ def parse_args():
 def main():
     args = parse_args()
 
-    prop_list = get_oai_properties(args.baseurl)
+    if args.days_back:
+        days_back = args.days_back
+    else:
+        days_back = 30
+
+    prop_list = get_oai_properties(args.baseurl, days_back)
     ex_call = args.baseurl + '?verb=ListRecords&metadataPrefix=oai_dc'
     class_name = args.shortname.capitalize()
     longname, tz_gran = get_id_props(args.baseurl)
