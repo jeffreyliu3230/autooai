@@ -55,24 +55,39 @@ def get_oai_properties(base_url, shortname):
 def formatted_oai(ex_call, class_name, shortname, longname, normal_url, oai_url, prop_list, tz_gran):
 
     return """'''
-Harvester for the ASU Digital Repository for the SHARE project
+Harvester for the {0} for the SHARE project
 
-Example API call: {0}
+Example API call: {1}
 '''
 
 from __future__ import unicode_literals
 from scrapi.base import OAIHarvester
 
 
-class {1}Harvester(OAIHarvester):
-    short_name = '{2}'
-    long_name = '{3}'
-    url = '{4}'
+class {2}Harvester(OAIHarvester):
+    short_name = '{3}'
+    long_name = '{4}'
+    url = '{5}'
 
-    base_url = '{5}'
-    property_list = {6}
-    timezone_granularity = {7}
-""".format(ex_call, class_name, shortname, longname, normal_url, oai_url, prop_list, tz_gran)
+    base_url = '{6}'
+    property_list = {7}
+    timezone_granularity = {8}
+""".format(longname, ex_call, class_name, shortname, longname, normal_url, oai_url, prop_list, tz_gran)
+
+
+def simple_oai(class_name, shortname, longname, normal_url, oai_url, prop_list, tz_gran):
+
+    return """
+
+class {0}Harvester(OAIHarvester):
+    short_name = '{1}'
+    long_name = '{2}'
+    url = '{3}'
+
+    base_url = '{4}'
+    property_list = {5}
+    timezone_granularity = {6}
+""".format(class_name, shortname, longname, normal_url, oai_url, prop_list, tz_gran)
 
 
 def get_id_props(baseurl):
@@ -97,6 +112,17 @@ def get_bepress():
     return [item.values()[0] for item in elements]
 
 
+def generate_bepress():
+    bepress_sites = get_bepress()
+
+    for site in bepress_sites:
+        # import ipdb; ipdb.set_trace()
+        bepress = generate_bepress_text(site)
+
+        with open('../scrapi/scrapi/harvesters/bepress.py', 'a') as outfile:
+            outfile.write(bepress)
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="A command line interface to create and commit a new harvester")
 
@@ -108,21 +134,39 @@ def parse_args():
     return parser.parse_args()
 
 
+def generate_bepress_text(baseurl):
+    shortname = ''
+    prop_list = get_oai_properties(baseurl, shortname)
+    class_name = shortname.capitalize()
+    longname, tz_gran = get_id_props(baseurl)
+
+    if 'hh:mm:ss' in tz_gran:
+        tz_gran = True
+    else:
+        tz_gran = False
+
+    return simple_oai(class_name, shortname, longname, baseurl, baseurl, prop_list, tz_gran)
+
+
+def generate_oai(baseurl, shortname):
+    prop_list = get_oai_properties(baseurl, shortname)
+    ex_call = baseurl + '?verb=ListRecords&metadataPrefix=oai_dc'
+    class_name = shortname.capitalize()
+    longname, tz_gran = get_id_props(baseurl)
+
+    if 'hh:mm:ss' in tz_gran:
+        tz_gran = True
+    else:
+        tz_gran = False
+
+    return formatted_oai(ex_call, class_name, shortname, longname, baseurl, baseurl, prop_list, tz_gran)
+
+
 def main():
     args = parse_args()
 
     if args.baseurl:
-        prop_list = get_oai_properties(args.baseurl, args.shortname)
-        ex_call = args.baseurl + '?verb=ListRecords&metadataPrefix=oai_dc'
-        class_name = args.shortname.capitalize()
-        longname, tz_gran = get_id_props(args.baseurl)
-
-        if 'hh:mm:ss' in tz_gran:
-            tz_gran = True
-        else:
-            tz_gran = False
-
-        text = formatted_oai(ex_call, class_name, args.shortname, longname, args.baseurl, args.baseurl, prop_list, tz_gran)
+        text = generate_oai(args.baseurl, args.shortname)
 
         with open('../scrapi/scrapi/harvesters/{}.py'.format(args.shortname), 'w') as outfile:
             outfile.write(text)
@@ -131,8 +175,7 @@ def main():
         get_favicon(args.baseurl, args.shortname)
 
     if args.bepress:
-        bepress_urls = get_bepress()
-        print(bepress_urls)
+        generate_bepress()
 
 
 if __name__ == '__main__':
