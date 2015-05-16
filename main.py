@@ -21,6 +21,7 @@ import vcr
 import shutil
 import argparse
 import requests
+import tldextract
 from lxml import etree
 
 
@@ -75,19 +76,23 @@ class {2}Harvester(OAIHarvester):
 """.format(longname, ex_call, class_name, shortname, longname, normal_url, oai_url, prop_list, tz_gran)
 
 
-def simple_oai(class_name, shortname, longname, normal_url, oai_url, prop_list, tz_gran):
+def simple_oai(class_name, shortname, longname, baseurl, prop_list, tz_gran):
 
     return """
 
-class {0}Harvester(OAIHarvester):
-    short_name = '{1}'
-    long_name = '{2}'
-    url = '{3}'
+class {class_name}Harvester(OAIHarvester):
+    '''Harvester for {longname}
+    Sample API Call = {baseurl}?verb=ListRecords&metadataPrefix=oai_dc
+    '''
 
-    base_url = '{4}'
-    property_list = {5}
-    timezone_granularity = {6}
-""".format(class_name, shortname, longname, normal_url, oai_url, prop_list, tz_gran)
+    short_name = '{shortname}'
+    long_name = '{longname}'
+    url = '{baseurl}'
+
+    base_url = '{baseurl}'
+    property_list = {prop_list}
+    timezone_granularity = {tz_gran}
+""".format(class_name=class_name, shortname=shortname, longname=longname, baseurl=baseurl, prop_list=prop_list, tz_gran=tz_gran)
 
 
 def get_id_props(baseurl):
@@ -114,13 +119,17 @@ def get_bepress():
 
 def generate_bepress():
     bepress_sites = get_bepress()
-
-    for site in bepress_sites:
-        # import ipdb; ipdb.set_trace()
-        bepress = generate_bepress_text(site)
+    for link in bepress_sites:
+        shortname = ''
+        x = tldextract.extract(link)
+        if x.subdomain and x.subdomain != 'www':
+            shortname = shortname + x.subdomain + '_'
+        shortname += x.domain
+        baseurl = link + '/do/oai/'
+        text = generate_bepress_text(baseurl, shortname)
 
         with open('../scrapi/scrapi/harvesters/bepress.py', 'a') as outfile:
-            outfile.write(bepress)
+            outfile.write(text)
 
 
 def parse_args():
@@ -134,10 +143,14 @@ def parse_args():
     return parser.parse_args()
 
 
-def generate_bepress_text(baseurl):
-    shortname = ''
+def generate_bepress_text(baseurl, shortname):
     prop_list = get_oai_properties(baseurl, shortname)
-    class_name = shortname.capitalize()
+
+    parts = shortname.replace('.', '').replace('-', '').split('_')
+    class_name = ''
+    for part in parts:
+        class_name += part.capitalize()
+
     longname, tz_gran = get_id_props(baseurl)
 
     if 'hh:mm:ss' in tz_gran:
@@ -145,7 +158,7 @@ def generate_bepress_text(baseurl):
     else:
         tz_gran = False
 
-    return simple_oai(class_name, shortname, longname, baseurl, baseurl, prop_list, tz_gran)
+    return simple_oai(class_name, shortname, longname, baseurl, prop_list, tz_gran)
 
 
 def generate_oai(baseurl, shortname):
