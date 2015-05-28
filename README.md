@@ -1,6 +1,38 @@
 # autooai
 
-Automatically create an OAI harvester for the SHARE Project
+Automatically create an OAI harvester for the [SHARE Project](https://osf.io/wur56/wiki/home/).
+
+In order to automatically generate a harvester, it's assumed you'll have an API endpoint that will return xml in standard OAI-PMH format.
+
+Since this is specfically for the SHARE project, it's assumed that you'll be running this tool from a directory that is one directory up from your [scrapi](http://github.com/fabianvf/scrapi) (or SHARE core) directory.
+
+Your directory structure should be something like this:
+
+
+```
+code
+├── autooai
+├── scrapi
+```
+
+That way, your newly generated OAI harvesters will be generated in the correct folder within your scrapi instance - namely within
+
+```
+scrapi/scrapi/harvesters
+```
+
+Here's an example of how to use this tool to generate a SHARE OAI harvester for the MIT repository:
+
+```
+python main.py -b http://dspace.mit.edu/oai/request -s mit -f
+```
+
+This will do a few things:
+- create a harvester called mit.py in the proper directory within scrapi
+- save the MIT favicon to the proper directory within scrapi (scrapi/img/favicons)
+
+
+Here's the main usage:
 
 ```
 usage: main.py [-h] -b BASEURL -s SHORTNAME [-f]
@@ -19,3 +51,6 @@ optional arguments:
 
   -h, --help            show this help message and exit
 ```
+
+
+Example usage
