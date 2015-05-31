@@ -18,11 +18,13 @@ example usage: python main.py -b http://udspace.udel.edu/dspace-oai/request -s u
 """
 
 import vcr
+from datetime import date
 import shutil
 import argparse
 import requests
 import tldextract
 from lxml import etree
+from freezegun import freeze_time
 
 
 NAMESPACES = {'dc': 'http://purl.org/dc/elements/1.1/',
@@ -31,6 +33,7 @@ NAMESPACES = {'dc': 'http://purl.org/dc/elements/1.1/',
 BASE_SCHEMA = ['title', 'contributor', 'creator', 'subject', 'description', 'language', 'publisher']
 
 
+@freeze_time("2007-12-21")
 def get_oai_properties(base_url, shortname):
     """ Makes a request to the provided base URL for the list of properties
 
@@ -39,7 +42,8 @@ def get_oai_properties(base_url, shortname):
 
     with vcr.use_cassette('../scrapi/tests/vcr/{}.yaml'.format(shortname)):
         try:
-            prop_url = base_url + '?verb=ListRecords&metadataPrefix=oai_dc'
+            start_date = date.today().isoformat()
+            prop_url = base_url + '?verb=ListRecords&metadataPrefix=oai_dc&from={}'.format(start_date)
             print('requesting {}'.format(prop_url))
             prop_data_request = requests.get(prop_url)
             all_prop_content = etree.XML(prop_data_request.content)
