@@ -64,8 +64,8 @@ Harvester for the {0} for the SHARE project
 
 Example API call: {1}
 '''
-
 from __future__ import unicode_literals
+
 from scrapi.base import OAIHarvester
 
 
