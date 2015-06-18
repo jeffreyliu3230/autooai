@@ -109,3 +109,4 @@ There is a chance that your automatically created test will fail when run for th
 - Inside of ```scrapi/tests/test_harvesters.py``` change the 'record_mode' on line 22 to 'once.' It should now read: ```with vcr.use_cassette('tests/vcr/{}.yaml'.format(harvester_name), match_on=['host'], record_mode='once'):```
 
 - Re-run the tests with ```invoke test```
+- Make sure to not save these changes to ```test_harvesters.py```
