@@ -17,14 +17,15 @@ example usage: python main.py -b http://udspace.udel.edu/dspace-oai/request -s u
 
 """
 
-import vcr
 import shutil
+from datetime import date
+from datetime import datetime
+
+import vcr
 import argparse
 import requests
 import tldextract
 from lxml import etree
-from datetime import date
-from datetime import datetime
 
 
 NAMESPACES = {'dc': 'http://purl.org/dc/elements/1.1/',
