@@ -48,7 +48,7 @@ python main.py -b http://dspace.mit.edu/oai/request -s mit -f
 
 This will do a few things:
 - Use the baseurl of http://dspace.mit.edu/oai/request to generate a harvester
-    + This baseurl is the begning of the oai endpoint, and includes everything before the ? in the oai pmh request url
+    + This baseurl is the begining of the oai endpoint, and includes everything before the ? in the oai pmh request url
     + Example: http://repository.stcloudstate.edu/do/oai/
     + Not:  http://repository.stcloudstate.edu/do/oai/?verb=Identify
 - Use mit as the shortname when generating the harvester
