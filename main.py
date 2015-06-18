@@ -20,6 +20,7 @@ example usage: python main.py -b http://udspace.udel.edu/dspace-oai/request -s u
 import shutil
 from datetime import date
 from datetime import datetime
+from datetime import timedelta
 
 import vcr
 import argparse
@@ -41,7 +42,8 @@ def get_oai_properties(base_url, shortname):
     """
 
     try:
-        start_date = date.today().isoformat() - datetime.timedelta(1)
+        print
+        start_date = (date.today() - timedelta(1)).isoformat()
         end_date = date.today().isoformat()
         with vcr.use_cassette('../scrapi/tests/vcr/{}.yaml'.format(shortname)):
             prop_url = base_url + '?verb=ListRecords&metadataPrefix=oai_dc&from={}&until={}'.format(start_date, end_date)
