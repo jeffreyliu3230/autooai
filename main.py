@@ -18,13 +18,13 @@ example usage: python main.py -b http://udspace.udel.edu/dspace-oai/request -s u
 """
 
 import vcr
-from datetime import date
 import shutil
 import argparse
 import requests
 import tldextract
 from lxml import etree
-from freezegun import freeze_time
+from datetime import date
+from datetime import datetime
 
 
 NAMESPACES = {'dc': 'http://purl.org/dc/elements/1.1/',
@@ -33,28 +33,28 @@ NAMESPACES = {'dc': 'http://purl.org/dc/elements/1.1/',
 BASE_SCHEMA = ['title', 'contributor', 'creator', 'subject', 'description', 'language', 'publisher']
 
 
-@freeze_time("2007-12-21")
 def get_oai_properties(base_url, shortname):
     """ Makes a request to the provided base URL for the list of properties
 
         returns a dict with list of properties
     """
 
-    with vcr.use_cassette('../scrapi/tests/vcr/{}.yaml'.format(shortname)):
-        try:
-            start_date = date.today().isoformat()
-            prop_url = base_url + '?verb=ListRecords&metadataPrefix=oai_dc&from={}'.format(start_date)
-            print('requesting {}'.format(prop_url))
-            prop_data_request = requests.get(prop_url)
-            all_prop_content = etree.XML(prop_data_request.content)
-            pre_names = all_prop_content.xpath('//ns0:metadata', namespaces=NAMESPACES)[0].getchildren()[0].getchildren()
+    try:
+        start_date = date.today().isoformat() - datetime.timedelta(1)
+        end_date = date.today().isoformat()
+        with vcr.use_cassette('../scrapi/tests/vcr/{}.yaml'.format(shortname)):
+            prop_url = base_url + '?verb=ListRecords&metadataPrefix=oai_dc&from={}&until={}'.format(start_date, end_date)
+        print('requesting {}'.format(prop_url))
+        prop_data_request = requests.get(prop_url)
+        all_prop_content = etree.XML(prop_data_request.content)
+        pre_names = all_prop_content.xpath('//ns0:metadata', namespaces=NAMESPACES)[0].getchildren()[0].getchildren()
 
-            all_names = [name.tag.replace('{' + NAMESPACES['dc'] + '}', '') for name in pre_names]
-            return list({name for name in all_names if name not in BASE_SCHEMA})
+        all_names = [name.tag.replace('{' + NAMESPACES['dc'] + '}', '') for name in pre_names]
+        return list({name for name in all_names if name not in BASE_SCHEMA})
 
-        # If anything at all goes wrong, just render a blank form...
-        except Exception as e:
-            raise ValueError('OAI Processing Error - {}'.format(e))
+    # If anything at all goes wrong, just render a blank form...
+    except Exception as e:
+        raise ValueError('OAI Processing Error - {}'.format(e))
 
 
 def formatted_oai(ex_call, class_name, shortname, longname, normal_url, oai_url, prop_list, tz_gran):
