@@ -21,6 +21,14 @@ That way, your newly generated OAI harvesters will be generated in the correct f
 scrapi/scrapi/harvesters
 ```
 
+From within the autooai directory...
+
+Install requirements using [pip](https://pypi.python.org/pypi/pip)inside a [virtual enviornment](https://virtualenv.pypa.io/en/latest/) by running ```pip install -r requirements.txt```
+
+Once you've installed all the requirements, you're ready to get started generating OAI-PMH harvesters for SHARE!
+
+----
+
 Here's an example of how to use this tool to generate a SHARE OAI harvester for the MIT repository:
 
 ```
