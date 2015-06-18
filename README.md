@@ -7,7 +7,7 @@ In order to automatically generate a harvester, it's assumed you'll have an API 
 For example, mit has an OAI PMH endpoint, and one of the ways to access it is:
 http://dspace.mit.edu/oai/request?verb=Identify
 
-Since this tool is specfically for the SHARE project, you should be running commands from a directory that is one directory away from your [scrapi](http://github.com/fabianvf/scrapi) (or SHARE core) directory.
+Since this tool is specfically for the SHARE project, you should be running commands from a directory that inside a directory on the same level as your [scrapi](http://github.com/fabianvf/scrapi) (or SHARE core) directory.
 
 Your directory structure should be something like this:
 
