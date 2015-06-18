@@ -2,9 +2,12 @@
 
 Automatically create an OAI harvester for the [SHARE Project](https://osf.io/wur56/wiki/home/).
 
-In order to automatically generate a harvester, it's assumed you'll have an API endpoint that will return xml in standard OAI-PMH format.
+In order to automatically generate a harvester, it's assumed you'll have an API endpoint that will return xml in standard OAI-PMH format. This will be your base URL!
 
-Since this is specfically for the SHARE project, it's assumed that you'll be running this tool from a directory that is one directory up from your [scrapi](http://github.com/fabianvf/scrapi) (or SHARE core) directory.
+For example, mit has an OAI PMH endpoint, and one of the ways to access it is:
+http://dspace.mit.edu/oai/request?verb=Identify
+
+Since this tool is specfically for the SHARE project, you should be running commands from a directory that is one directory away from your [scrapi](http://github.com/fabianvf/scrapi) (or SHARE core) directory.
 
 Your directory structure should be something like this:
 
@@ -47,7 +50,7 @@ This will do a few things:
 - Use the baseurl of http://dspace.mit.edu/oai/request to generate a harvester
     + This baseurl is the begning of the oai endpoint, and includes everything before the ? in the oai pmh request url
     + Example: http://repository.stcloudstate.edu/do/oai/
-    + Not:  http://repository.stcloudstate.edu/do/oai/?verb=ListRecords
+    + Not:  http://repository.stcloudstate.edu/do/oai/?verb=Identify
 - Use mit as the shortname when generating the harvester
 - save the MIT favicon to the proper directory within scrapi (scrapi/img/favicons)
 
