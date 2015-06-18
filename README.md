@@ -104,9 +104,7 @@ On a new scrapi setup, you may have to alias the share index to the most current
 There is a chance that your automatically created test will fail when run for the first time. If that's the case, you can create a new vcr file that will hopefully work.
 
 - Delete the old vcr file inside ```scrapi/tests/vcr/shortname.py```
-- Change the date within the "freeze time" decorator on line 14 to a date where you know the harvester had results. For example:
-
-```@freeze_time("2014-03-15```
+- Change the date within the "freeze time" decorator on line 14 to a date where you know the harvester had results. For example: ```@freeze_time("2014-03-15)```
 
 - Inside of ```scrapi/tests/test_harvesters.py``` change the 'record_mode' on line 22 to 'once.' It should now read:
     
