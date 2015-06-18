@@ -8,7 +8,6 @@ Since this is specfically for the SHARE project, it's assumed that you'll be run
 
 Your directory structure should be something like this:
 
-
 ```
 code
 ├── autooai
@@ -21,6 +20,9 @@ That way, your newly generated OAI harvesters will be generated in the correct f
 scrapi/scrapi/harvesters
 ```
 
+---
+## Setup
+
 From within the autooai directory...
 
 Install requirements using [pip](https://pypi.python.org/pypi/pip) inside a [virtual enviornment](https://virtualenv.pypa.io/en/latest/) by running 
@@ -31,6 +33,10 @@ Once you've installed all the requirements, you're ready to get started generati
 
 ----
 
+## Generating a Harvester
+
+Autooai is a command line tool that takes a few arguments and will generate a SHARE harvester based on those arguments. 
+
 Here's an example of how to use this tool to generate a SHARE OAI harvester for the MIT repository:
 
 ```
@@ -38,9 +44,12 @@ python main.py -b http://dspace.mit.edu/oai/request -s mit -f
 ```
 
 This will do a few things:
-- create a harvester called mit.py in the proper directory within scrapi
+- Use the baseurl of http://dspace.mit.edu/oai/request to generate a harvester
+    + This baseurl is the begning of the oai endpoint, and includes everything before the ? in the oai pmh request url
+    + Example: http://repository.stcloudstate.edu/do/oai/
+    + Not:  http://repository.stcloudstate.edu/do/oai/?verb=ListRecords
+- Use mit as the shortname when generating the harvester
 - save the MIT favicon to the proper directory within scrapi (scrapi/img/favicons)
-
 
 Here's the main usage:
 
@@ -62,5 +71,42 @@ optional arguments:
   -h, --help            show this help message and exit
 ```
 
+## Running your new harvester
 
-Example usage
+Assuming you've already done all of the setup for [scrapi](https://github.com/fabianvf/scrapi), you're ready to run the harvester you've just generated, and try to gather some data into scrapi.
+
+Enter the scrapi directory, one up from your current autooai directory ```cd ../scrapi```
+
+Run the harvester using invoke and the shortname you created the harvester with
+
+```invoke harvester insert-shortname-here```
+
+You can then check out the results on your local elasticsearch instance running on http://localhost:9200/share_v2/_search
+
+If you're running the [OSF](https://github.com/CenterForOpenScience/osf.io) locally, you can explore search results on localhost:5000/share after running 
+```invoke provider_map```
+
+Run tests on scrapi, including your newly created harvester test, with ```invoke test```
+
+## Potential Pitfalls
+
+### elasticsearch index errors
+
+On a new scrapi setup, you may have to alias the share index to the most current version:
+
+```invoke alias share share_v2```
+
+### Failing tests
+
+There is a chance that your automatically created test will fail when run for the first time. If that's the case, you can create a new vcr file that will hopefully work.
+
+- Delete the old vcr file inside ```scrapi/tests/vcr/shortname.py```
+- Change the date within the "freeze time" decorator on line 14 to a date where you know the harvester had results. For example:
+
+```@freeze_time("2014-03-15```
+
+- Inside of ```scrapi/tests/test_harvesters.py``` change the 'record_mode' on line 22 to 'once.' It should now read:
+    
+```with vcr.use_cassette('tests/vcr/{}.yaml'.format(harvester_name), match_on=['host'], record_mode='once'):```
+
+- Re-run the tests with ```invoke test```
