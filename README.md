@@ -106,8 +106,6 @@ There is a chance that your automatically created test will fail when run for th
 - Delete the old vcr file inside ```scrapi/tests/vcr/shortname.py```
 - Change the date within the "freeze time" decorator on line 14 to a date where you know the harvester had results. For example: ```@freeze_time("2014-03-15)```
 
-- Inside of ```scrapi/tests/test_harvesters.py``` change the 'record_mode' on line 22 to 'once.' It should now read:
-    
-```with vcr.use_cassette('tests/vcr/{}.yaml'.format(harvester_name), match_on=['host'], record_mode='once'):```
+- Inside of ```scrapi/tests/test_harvesters.py``` change the 'record_mode' on line 22 to 'once.' It should now read: ```with vcr.use_cassette('tests/vcr/{}.yaml'.format(harvester_name), match_on=['host'], record_mode='once'):```
 
 - Re-run the tests with ```invoke test```
