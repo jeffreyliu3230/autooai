@@ -35,7 +35,7 @@ NAMESPACES = {'dc': 'http://purl.org/dc/elements/1.1/',
 BASE_SCHEMA = ['title', 'contributor', 'creator', 'subject', 'description', 'language', 'publisher']
 
 
-def get_oai_properties(base_url, shortname,start_date,end_date):
+def get_oai_properties(base_url, shortname, start_date, end_date):
     """ Makes a request to the provided base URL for the list of properties
 
         returns a dict with list of properties
@@ -47,15 +47,16 @@ def get_oai_properties(base_url, shortname,start_date,end_date):
         print('requesting {}'.format(prop_url))
         prop_data_request = requests.get(prop_url)
         all_prop_content = etree.XML(prop_data_request.content)
-        pre_names = all_prop_content.xpath('//ns0:metadata', namespaces=NAMESPACES)[0].getchildren()[0].getchildren()
+        try:
+            pre_names = all_prop_content.xpath('//ns0:metadata', namespaces=NAMESPACES)[0].getchildren()[0].getchildren()
+        except IndexError:
+            raise ("There may be no records within your range, try setting date manually using.")
+
         all_names = [name.tag.replace('{' + NAMESPACES['dc'] + '}', '') for name in pre_names]
         return list({name for name in all_names if name not in BASE_SCHEMA})
 
     # If anything at all goes wrong, just render a blank form...
     except Exception as e:
-
-        if IndexError:
-            raise ("There may be no records within your range, try setting date manually using.")
         raise ValueError('OAI Processing Error - {}'.format(e))
 
 def formatted_oai(ex_call, class_name, shortname, longname, normal_url, oai_url, prop_list, tz_gran):
@@ -151,7 +152,7 @@ def parse_args():
 
 
 def generate_bepress_text(baseurl, shortname,start_date,end_date):
-    prop_list = get_oai_properties(baseurl, shortname,start_date,end_date)
+    prop_list = get_oai_properties(baseurl, shortname, start_date, end_date)
 
     parts = shortname.replace('.', '').replace('-', '').split('_')
     class_name = ''
@@ -168,13 +169,12 @@ def generate_bepress_text(baseurl, shortname,start_date,end_date):
     return simple_oai(class_name, shortname, longname, baseurl, prop_list, tz_gran)
 
 
-def generate_oai(baseurl, shortname,start_date,end_date):
-    prop_list = get_oai_properties(baseurl, shortname,start_date,end_date)
+def generate_oai(baseurl, shortname, start_date, end_date):
+    prop_list = get_oai_properties(baseurl, shortname, start_date, end_date)
     ex_call = baseurl + '?verb=ListRecords&metadataPrefix=oai_dc'
-    try:
-        class_name = shortname.capitalize()
-    except:
-        class_name = None
+
+    class_name = shortname.capitalize()
+
     longname, tz_gran = get_id_props(baseurl)
 
     if 'hh:mm:ss' in tz_gran:
@@ -189,8 +189,8 @@ def main():
     args = parse_args()
 
     #deafault range is one year.
-    if args.daterange == None:
-        startdate = (date.today() - timedelta(365)).isoformat()
+    if not args.daterange:
+        startdate = (date.today() - timedelta(2)).isoformat()
         enddate = date.today().isoformat()
     else:
         startdate , enddate = args.daterange.split(':')
