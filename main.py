@@ -35,22 +35,22 @@ NAMESPACES = {'dc': 'http://purl.org/dc/elements/1.1/',
 BASE_SCHEMA = ['title', 'contributor', 'creator', 'subject', 'description', 'language', 'publisher']
 
 
-def get_oai_properties(base_url, shortname):
+def get_oai_properties(base_url, shortname, start_date, end_date):
     """ Makes a request to the provided base URL for the list of properties
 
         returns a dict with list of properties
     """
 
     try:
-        print
-        start_date = (date.today() - timedelta(1)).isoformat()
-        end_date = date.today().isoformat()
-        with vcr.use_cassette('../scrapi/tests/vcr/{}.yaml'.format(shortname)):
-            prop_url = base_url + '?verb=ListRecords&metadataPrefix=oai_dc&from={}&until={}'.format(start_date, end_date)
+        prop_url = base_url + '?verb=ListRecords&metadataPrefix=oai_dc&from={}&until={}'.format(start_date, end_date)
+
         print('requesting {}'.format(prop_url))
         prop_data_request = requests.get(prop_url)
         all_prop_content = etree.XML(prop_data_request.content)
-        pre_names = all_prop_content.xpath('//ns0:metadata', namespaces=NAMESPACES)[0].getchildren()[0].getchildren()
+        try:
+            pre_names = all_prop_content.xpath('//ns0:metadata', namespaces=NAMESPACES)[0].getchildren()[0].getchildren()
+        except IndexError:
+            raise ("There may be no records within your range, try setting date manually using.")
 
         all_names = [name.tag.replace('{' + NAMESPACES['dc'] + '}', '') for name in pre_names]
         return list({name for name in all_names if name not in BASE_SCHEMA})
@@ -58,7 +58,6 @@ def get_oai_properties(base_url, shortname):
     # If anything at all goes wrong, just render a blank form...
     except Exception as e:
         raise ValueError('OAI Processing Error - {}'.format(e))
-
 
 def formatted_oai(ex_call, class_name, shortname, longname, normal_url, oai_url, prop_list, tz_gran):
 
@@ -144,14 +143,16 @@ def parse_args():
 
     parser.add_argument('-b', '--baseurl', dest='baseurl', type=str, help='The base url for the OAI provider, everything before the ?')
     parser.add_argument('-s', '--shortname', dest='shortname', type=str, help='The shortname of the  provider')
+    parser.add_argument('-dr', '--daterange', dest='daterange', type=str, help=' date format must be isoformat YYYY-MM-DD:YYYY-MM-DD of query')
     parser.add_argument('-f', '--favicon', dest='favicon', help='flag to signal saving favicon', action='store_true')
     parser.add_argument('-bp', '--bepress', dest='bepress', help='flag to signal generating bepress list', action='store_true')
+
 
     return parser.parse_args()
 
 
-def generate_bepress_text(baseurl, shortname):
-    prop_list = get_oai_properties(baseurl, shortname)
+def generate_bepress_text(baseurl, shortname,start_date,end_date):
+    prop_list = get_oai_properties(baseurl, shortname, start_date, end_date)
 
     parts = shortname.replace('.', '').replace('-', '').split('_')
     class_name = ''
@@ -168,10 +169,12 @@ def generate_bepress_text(baseurl, shortname):
     return simple_oai(class_name, shortname, longname, baseurl, prop_list, tz_gran)
 
 
-def generate_oai(baseurl, shortname):
-    prop_list = get_oai_properties(baseurl, shortname)
+def generate_oai(baseurl, shortname, start_date, end_date):
+    prop_list = get_oai_properties(baseurl, shortname, start_date, end_date)
     ex_call = baseurl + '?verb=ListRecords&metadataPrefix=oai_dc'
+
     class_name = shortname.capitalize()
+
     longname, tz_gran = get_id_props(baseurl)
 
     if 'hh:mm:ss' in tz_gran:
@@ -185,8 +188,22 @@ def generate_oai(baseurl, shortname):
 def main():
     args = parse_args()
 
+    #deafault range is one year.
+    if not args.daterange:
+        startdate = (date.today() - timedelta(2)).isoformat()
+        enddate = date.today().isoformat()
+    else:
+        startdate , enddate = args.daterange.split(':')
+
+    print args.baseurl
+    try:
+        with vcr.use_cassette('../scrapi/tests/vcr/{}.yaml'.format(args.shortname)):
+            args.baseurl + '?verb=ListRecords&metadataPrefix=oai_dc&from={}&until={}'.format(startdate, enddate)
+    except Exception as e:
+        raise ValueError('OAI Processing Error - {}'.format(e))
+
     if args.baseurl:
-        text = generate_oai(args.baseurl, args.shortname)
+        text = generate_oai(args.baseurl, args.shortname,startdate,enddate)
 
         with open('../scrapi/scrapi/harvesters/{}.py'.format(args.shortname), 'w') as outfile:
             outfile.write(text)
