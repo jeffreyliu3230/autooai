@@ -2,7 +2,7 @@
 
 Automatically create an OAI harvester for the [SHARE Project](https://osf.io/wur56/wiki/home/).
 
-In order to automatically generate a harvester, it's assumed you'll have an API endpoint that will return xml in standard OAI-PMH format. This will be your base URL!
+In order to automatically generate a harvester, it's assumed you'll have an API endpoint that will return xml in standard OAI-PMH format. This will be your base URL! Use that in the command line interface.
 
 For example, MIT has an OAI PMH endpoint, and one of the ways to access it is:
 http://dspace.mit.edu/oai/request?verb=Identify
