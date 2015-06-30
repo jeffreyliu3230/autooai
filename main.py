@@ -19,7 +19,6 @@ example usage: python main.py -b http://udspace.udel.edu/dspace-oai/request -s u
 
 import shutil
 from datetime import date
-from datetime import datetime
 from datetime import timedelta
 
 import vcr
@@ -58,6 +57,7 @@ def get_oai_properties(base_url, shortname, start_date, end_date):
     # If anything at all goes wrong, just render a blank form...
     except Exception as e:
         raise ValueError('OAI Processing Error - {}'.format(e))
+
 
 def formatted_oai(ex_call, class_name, shortname, longname, normal_url, oai_url, prop_list, tz_gran):
 
@@ -150,7 +150,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def generate_bepress_text(baseurl, shortname,start_date,end_date):
+def generate_bepress_text(baseurl, shortname, start_date, end_date):
     prop_list = get_oai_properties(baseurl, shortname, start_date, end_date)
 
     parts = shortname.replace('.', '').replace('-', '').split('_')
@@ -192,7 +192,7 @@ def main():
         startdate = (date.today() - timedelta(2)).isoformat()
         enddate = date.today().isoformat()
     else:
-        startdate , enddate = args.daterange.split(':')
+        startdate, enddate = args.daterange.split(':')
 
     print args.baseurl
     try:
@@ -202,7 +202,7 @@ def main():
         raise ValueError('OAI Processing Error - {}'.format(e))
 
     if args.baseurl:
-        text = generate_oai(args.baseurl, args.shortname,startdate,enddate)
+        text = generate_oai(args.baseurl, args.shortname, startdate, enddate)
 
         with open('../scrapi/scrapi/harvesters/{}.py'.format(args.shortname), 'w') as outfile:
             outfile.write(text)
