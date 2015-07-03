@@ -22,6 +22,7 @@ from datetime import date
 from datetime import timedelta
 
 import vcr
+import furl
 import argparse
 import requests
 import tldextract
@@ -41,10 +42,14 @@ def get_oai_properties(base_url, shortname, start_date, end_date):
     """
 
     try:
-        prop_url = base_url + '?verb=ListRecords&metadataPrefix=oai_dc&from={}&until={}'.format(start_date, end_date)
+        prop_base = furl.furl(base_url)
+        prop_base.args['verb'] = 'ListRecords'
+        prop_base.args['metadataPrefix'] = 'oai_dc'
+        prop_base.args['from'] = start_date
+        prop_base.args['until'] = end_date
 
-        print('requesting {}'.format(prop_url))
-        prop_data_request = requests.get(prop_url)
+        print('requesting {}'.format(prop_base.url))
+        prop_data_request = requests.get(prop_base.url)
         all_prop_content = etree.XML(prop_data_request.content)
         try:
             pre_names = all_prop_content.xpath('//ns0:metadata', namespaces=NAMESPACES)[0].getchildren()[0].getchildren()
