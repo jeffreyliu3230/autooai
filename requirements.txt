@@ -10,3 +10,4 @@ tldextract==1.6
 vcrpy==1.5.2
 wrapt==1.10.4
 wsgiref==0.1.2
+furl==0.4.7
